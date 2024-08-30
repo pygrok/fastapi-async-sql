@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any, Generic, TypeVar
 
-from pydantic import UUID4, BaseModel
+from pydantic import BaseModel
 from sqlalchemy import exc
 from sqlmodel import SQLModel, func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -18,7 +18,7 @@ CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 SchemaType = TypeVar("SchemaType", bound=BaseModel)
 T = TypeVar("T", bound=SQLModel)
-PK = UUID4
+PK = Any
 
 
 class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
@@ -35,9 +35,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
         self.db = db
 
-    async def get(
-        self, *, id: PK, db_session: AsyncSession | None = None
-    ) -> ModelType | None:
+    async def get(self, *, id: PK, db_session: AsyncSession | None = None) -> ModelType:
         """Get a single object by ID."""
         session = self._get_db_session(db_session)
         response = await session.get(self.model, id)
