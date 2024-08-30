@@ -17,7 +17,7 @@ from fastapi_async_sql.utils.string import to_camel
 from tests.dependencies import AnnotatedRepositoryHero
 from tests.models.hero_model import Hero
 from tests.models.team_model import Team
-from tests.schemas.hero_schema import IHeroRead, IHeroReadWithTeam
+from tests.schemas.hero_schemas import HeroReadSchema, HeroReadWithTeamSchema
 
 
 @pytest.mark.parametrize(
@@ -44,7 +44,7 @@ async def test_get_paginated_response(
     @app.get("/heroes")
     async def get_heroes(
         repository: AnnotatedRepositoryHero, params: Params = Depends()
-    ) -> Page[IHeroRead]:
+    ) -> Page[HeroReadSchema]:
         return await repository.get_multi_paginated(page_params=params)
 
     response = await client.get("/heroes", params=query_params)
@@ -303,7 +303,7 @@ async def test_api_filtering(
         repository: AnnotatedRepositoryHero,
         params: Params = Depends(),
         filter_by: HeroFilter = FilterDepends(HeroFilter),
-    ) -> list[IHeroRead]:
+    ) -> list[HeroReadSchema]:
         query = select(Hero).outerjoin(Team)
         return await repository.get_multi(
             query=query, page_params=params, filter_by=filter_by
@@ -314,7 +314,7 @@ async def test_api_filtering(
         repository: AnnotatedRepositoryHero,
         params: Params = Depends(),
         filter_by: HeroFilterByAlias = FilterDepends(HeroFilterByAlias, by_alias=True),
-    ) -> list[IHeroRead]:
+    ) -> list[HeroReadSchema]:
         return await repository.get_multi(page_params=params, filter_by=filter_by)
 
     response = await client.get(f"{endpoint}?{urlencode(filter_clause)}")
@@ -332,7 +332,7 @@ async def test_get_heroes_with_relationships(
     @app.get("/heroes")
     async def get_heroes(
         repository: AnnotatedRepositoryHero,
-    ) -> list[IHeroReadWithTeam]:
+    ) -> list[HeroReadWithTeamSchema]:
         query = (
             select(Hero)
             .options(selectinload(Hero.team))
@@ -375,7 +375,7 @@ async def test_get_hero_with_relationships_with_lazy_loading(
     @app.get("/heroes/{hero_id}")
     async def get_heroes(
         hero_id: UUID4, repository: AnnotatedRepositoryHero
-    ) -> IHeroReadWithTeam:
+    ) -> HeroReadWithTeamSchema:
         response = await repository.get(id=hero_id)
         response.item = await response.awaitable_attrs.item
         response.team = await response.awaitable_attrs.team

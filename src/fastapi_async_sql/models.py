@@ -1,4 +1,4 @@
-"""Base model."""
+"""Base models."""
 
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
@@ -12,6 +12,17 @@ from fastapi_async_sql.utils.string import to_camel, to_snake_plural
 
 
 class BaseSQLModel(AsyncAttrs, SQLModel):
+    """Base SQL model with automatic __tablename__ generation.
+
+    /// info | Usage Documentation
+    [Models](../concepts/models.md#basesqlmodel)
+    ///
+
+    Attributes:
+        __tablename__ (str): The table name for the model.
+        model_config (ConfigDict): The configuration for the model.
+    """
+
     @declared_attr  # type: ignore
     def __tablename__(cls) -> str:
         """Generate __tablename__ automatically."""
@@ -26,6 +37,13 @@ class BaseSQLModel(AsyncAttrs, SQLModel):
 
 
 class BaseTimestampModel:
+    """Base model with created_at and updated_at fields.
+
+    /// info | Usage Documentation
+    [Models](../concepts/models.md#basetimestampmodel)
+    ///
+    """
+
     created_at: AwareDatetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc),
         sa_type=TIMESTAMP(timezone=True),
@@ -39,6 +57,13 @@ class BaseTimestampModel:
 
 
 class BaseUUIDModel:
+    """Base model with UUID primary key.
+
+    /// info | Usage Documentation
+    [Models](../concepts/models.md#baseuuidmodel)
+    ///
+    """
+
     id: UUID = Field(
         default_factory=uuid4,
         primary_key=True,

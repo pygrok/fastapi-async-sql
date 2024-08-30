@@ -22,7 +22,18 @@ PK = Any
 
 
 class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    def __init__(self, model: type[ModelType], db: AsyncSession | None = None):
+    """Base Repository with default methods to Create, Read, Update, Delete (CRUD).
+
+    /// info | Usage Documentation
+    [Repositories](../concepts/repositories.md#baserepository)
+    ///
+
+    Attributes:
+        model (type[ModelType]): The model to be used in the Repository.
+        db (AsyncSession | None): The database session to be used. Defaults to None.
+    """
+
+    def __init__(self, model: type[ModelType], db: AsyncSession | None = None) -> None:
         """Repository with default methods to Create, Read, Update, Delete (CRUD).
 
         Args:

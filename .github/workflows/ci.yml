@@ -1,4 +1,4 @@
-name: ci
+name: Build Docs
 on:
   push:
     branches:
@@ -29,4 +29,7 @@ jobs:
           pip install mkdocs-material
           pip install mkdocs-git-revision-date-localized-plugin
           pip install termynal
+          pip install mdx_include
+          pip install 'mkdocstrings[python]'
+          # TODO: Use uv to install docs optional dependencies
       - run: mkdocs gh-deploy --force

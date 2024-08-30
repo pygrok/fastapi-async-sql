@@ -17,7 +17,7 @@ from fastapi_async_sql.middlewares import AsyncSQLModelMiddleware
 from tests.models.hero_model import Hero
 from tests.models.item_model import Item
 from tests.models.team_model import Team
-from tests.schemas.hero_schema import IHeroRead
+from tests.schemas.hero_schemas import HeroReadSchema
 
 
 @pytest.fixture(scope="function")
@@ -143,7 +143,7 @@ async def test_async_sqlalchemy_middleware_db_session_commit(
     """Test that the middleware correctly commits the session."""
 
     @app_with_db_middleware.post(
-        "/heroes", response_model=IHeroRead, status_code=status.HTTP_201_CREATED
+        "/heroes", response_model=HeroReadSchema, status_code=status.HTTP_201_CREATED
     )
     async def create_hero(request: Request):
         hero = Hero(

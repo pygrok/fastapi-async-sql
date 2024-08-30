@@ -13,8 +13,8 @@ from tests.models.hero_model import Hero
 from tests.models.item_model import Item
 from tests.models.team_model import Team
 from tests.repositories import HeroRepository, ItemRepository
-from tests.schemas.hero_schema import IHeroCreate, IHeroUpdate
-from tests.schemas.item_schema import IItemCreate
+from tests.schemas.hero_schemas import HeroCreateSchema, HeroUpdateSchema
+from tests.schemas.item_schemas import ItemCreateSchema
 
 
 async def test_create_hero(
@@ -24,7 +24,7 @@ async def test_create_hero(
     hero_repository: HeroRepository,
 ):
     """Test create hero."""
-    hero_data = IHeroCreate(
+    hero_data = HeroCreateSchema(
         name="Test Hero",
         age=30,
         secret_identity="Test Identity",  # nosec: B106
@@ -44,7 +44,7 @@ async def test_create_item_with_extra_data(
     item_repository: ItemRepository,
 ):
     """Test create item with extra data."""
-    item_data = IItemCreate(name="Test Item")
+    item_data = ItemCreateSchema(name="Test Item")
     created_by_id = uuid4()
     created_item = await item_repository.create(
         obj_in=item_data, created_by_id=created_by_id
@@ -61,7 +61,7 @@ async def test_create_hero_duplicate(
     hero_repository: HeroRepository,
 ):
     """Test create hero with duplicate data."""
-    hero_data = IHeroCreate(
+    hero_data = HeroCreateSchema(
         name=heroes[0].name,
         age=30,
         secret_identity="Test Identity",  # nosec: B106
@@ -124,7 +124,7 @@ async def test_update_hero(
     """Test update hero."""
     hero = heroes[0]
     assert hero.updated_at is None
-    update_data = IHeroUpdate(name="Updated Hero")
+    update_data = HeroUpdateSchema(name="Updated Hero")
     updated_hero = await hero_repository.update(obj_current=hero, obj_new=update_data)
     assert updated_hero.name == "Updated Hero"
     assert isinstance(updated_hero.updated_at, datetime)
