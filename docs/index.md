@@ -1,15 +1,15 @@
 # FastAPI Async SQL
-Common utilities for Async SQL FastAPI applications
+
+Common utilities for Async SQL FastAPI applications.
 
 ## Installation
-<div class="termy">
+<!-- termynal -->
 
 ```console
 uv pip install fastapi-async-sql
 ---> 100%
 ```
 
-</div>
 
 ## Features
 - AsyncSQLAlchemyMiddleware: A middleware to handle database connections with AsyncSQLAlchemy
