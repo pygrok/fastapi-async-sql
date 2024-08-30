@@ -1,0 +1,24 @@
+site_name: FastAPI Async SQL
+site_url: https://pygrok.github.io/fastapi-async-sql
+repo_url: https://github.com/pygrok/fastapi-async-sql
+repo_name: pygrok/fastapi-async-sql
+theme:
+  name: material
+  palette:
+    primary: teal
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - content.code.copy
+plugins:
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: date
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences

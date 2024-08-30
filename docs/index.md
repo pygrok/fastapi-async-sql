@@ -1,13 +1,10 @@
 # FastAPI Async SQL
-Common utilities for Async SQL FastAPI applications
+
+Common utilities for Async SQL FastAPI applications.
 
 ## Installation
 ```bash
-uv add fastapi-async-sql
-```
-or
-```bash
-pip install fastapi-async-sql
+uv pip install fastapi-async-sql
 ```
 
 ## Features
