@@ -12,7 +12,21 @@ from fastapi_async_sql.exceptions import (
 )
 
 
-class AsyncSQLAlchemyMiddleware(BaseHTTPMiddleware):
+class AsyncSQLModelMiddleware(BaseHTTPMiddleware):
+    """Middleware to handle the database session.
+
+    /// info | Usage Documentation
+    [Middlewares](../concepts/middlewares.md#asyncsqlmodelmiddleware)
+    ///
+
+    Attributes:
+        app (ASGIApp): The ASGI app.
+        db_url (str | None): The database URL. Defaults to None.
+        custom_engine (AsyncEngine | None): The custom engine. Defaults to None.
+        session_options (dict | None): The session options. Defaults to None.
+        engine_options (dict | None): The engine options. Defaults to None.
+    """
+
     def __init__(
         self,
         app: ASGIApp,

@@ -7,7 +7,7 @@ from httpx import ASGITransport
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from fastapi_async_sql.middlewares import AsyncSQLAlchemyMiddleware
+from fastapi_async_sql.middlewares import AsyncSQLModelMiddleware
 from fastapi_async_sql.models import BaseSQLModel
 
 from tests.factories import HeroFactory, ItemFactory, TeamFactory, register_factories
@@ -64,7 +64,7 @@ def app(engine: AsyncEngine) -> FastAPI:
     """Create the FastAPI app."""
     app = FastAPI()
     app.add_middleware(
-        AsyncSQLAlchemyMiddleware,  # noqa
+        AsyncSQLModelMiddleware,  # noqa
         custom_engine=engine,
     )
     return app

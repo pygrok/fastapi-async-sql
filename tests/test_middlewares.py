@@ -12,7 +12,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from fastapi_async_sql.exceptions import MissingArgsError, MultipleArgsError
-from fastapi_async_sql.middlewares import AsyncSQLAlchemyMiddleware
+from fastapi_async_sql.middlewares import AsyncSQLModelMiddleware
 
 from tests.models.hero_model import Hero
 from tests.models.item_model import Item
@@ -28,8 +28,8 @@ def app():
 
 @pytest.fixture(scope="function")
 def app_with_db_middleware(app, engine: AsyncEngine):
-    """Create a FastAPI app with the AsyncSQLAlchemyMiddleware."""
-    app.add_middleware(AsyncSQLAlchemyMiddleware, custom_engine=engine)  # noqa
+    """Create a FastAPI app with the AsyncSQLModelMiddleware."""
+    app.add_middleware(AsyncSQLModelMiddleware, custom_engine=engine)  # noqa
     return app
 
 
@@ -44,7 +44,7 @@ async def client(app: FastAPI, test_server_url: str) -> httpx.AsyncClient:
 
 async def test_init_async_sqlalchemy_middleware(app: FastAPI, database_url: str):
     """Test that the middleware is correctly initialised."""
-    mw = AsyncSQLAlchemyMiddleware(app, db_url=database_url)
+    mw = AsyncSQLModelMiddleware(app, db_url=database_url)
     assert isinstance(mw, BaseHTTPMiddleware)
 
 
@@ -52,14 +52,14 @@ async def test_init_async_sqlalchemy_middleware_custom_engine(
     app: FastAPI, engine: AsyncEngine
 ):
     """Test that the middleware is correctly initialised with a custom engine."""
-    mw = AsyncSQLAlchemyMiddleware(app, custom_engine=engine)
+    mw = AsyncSQLModelMiddleware(app, custom_engine=engine)
     assert isinstance(mw, BaseHTTPMiddleware)
 
 
 async def test_init_async_sqlalchemy_middleware_missing_required_args(app: FastAPI):
     """Test that the middleware raises an error if no db_url or custom_engine is passed."""
     with pytest.raises(MissingArgsError) as exc:
-        AsyncSQLAlchemyMiddleware(app)
+        AsyncSQLModelMiddleware(app)
     assert str(exc.value) == "You need to pass db_url or custom_engine parameter."
 
 
@@ -68,7 +68,7 @@ async def test_init_async_sqlalchemy_middleware_multiple_args(
 ):
     """Test that the middleware raises an error if both db_url and custom_engine are passed."""
     with pytest.raises(MultipleArgsError) as exc:
-        AsyncSQLAlchemyMiddleware(app, db_url=database_url, custom_engine=engine)
+        AsyncSQLModelMiddleware(app, db_url=database_url, custom_engine=engine)
     assert str(exc.value) == "Mutually exclusive parameters: db_url, custom_engine."
 
 
@@ -79,7 +79,7 @@ async def test_init_async_sqlalchemy_middleware_correct_optional_args(
     engine_options = {"echo": True, "poolclass": NullPool}
     session_options = {"autoflush": False}
 
-    mw = AsyncSQLAlchemyMiddleware(
+    mw = AsyncSQLModelMiddleware(
         app,
         database_url,
         engine_options=engine_options,
@@ -99,12 +99,10 @@ async def test_init_async_sqlalchemy_middleware_incorrect_optional_args(
 ):
     """Test that the middleware is correctly initialised with incorrect optional arguments."""
     with pytest.raises(TypeError) as exc:
-        AsyncSQLAlchemyMiddleware(
-            app, db_url="sqlite+aiosqlite://", invalid_args="test"
-        )
+        AsyncSQLModelMiddleware(app, db_url="sqlite+aiosqlite://", invalid_args="test")
     assert (
         str(exc.value)
-        == "AsyncSQLAlchemyMiddleware.__init__() got an unexpected keyword argument 'invalid_args'"
+        == "AsyncSQLModelMiddleware.__init__() got an unexpected keyword argument 'invalid_args'"
     )
 
 
