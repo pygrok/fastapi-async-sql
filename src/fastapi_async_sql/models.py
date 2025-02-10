@@ -6,9 +6,11 @@ from uuid import UUID, uuid4
 from pydantic import AwareDatetime, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.ext.declarative import declared_attr
-from sqlmodel import TIMESTAMP, Field, SQLModel
+from sqlmodel import Field, SQLModel
 
 from fastapi_async_sql.utils.string import to_camel, to_snake_plural
+
+from .typing import TimeStamp
 
 
 class BaseSQLModel(AsyncAttrs, SQLModel):
@@ -46,12 +48,12 @@ class BaseTimestampModel:
 
     created_at: AwareDatetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc),
-        sa_type=TIMESTAMP(timezone=True),
+        sa_type=TimeStamp(timezone=True),
     )
 
     updated_at: AwareDatetime | None = Field(
         default=None,
-        sa_type=TIMESTAMP(timezone=True),
+        sa_type=TimeStamp(timezone=True),
         sa_column_kwargs={"onupdate": lambda: datetime.now(tz=timezone.utc)},
     )
 

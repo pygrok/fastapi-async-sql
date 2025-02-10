@@ -228,13 +228,14 @@ wheels = [
 
 [[package]]
 name = "fastapi-async-sql"
-version = "0.1.0a1"
+version = "0.2.0a1"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "fastapi-filter", extra = ["sqlalchemy"] },
     { name = "fastapi-pagination" },
     { name = "inflect" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "sqlmodel" },
 ]
 
@@ -281,6 +282,7 @@ requires-dist = [
     { name = "pytest-mock", marker = "extra == 'test'", specifier = ">=3.14.0" },
     { name = "ruff", marker = "extra == 'lint'", specifier = ">=0.6.2" },
     { name = "ruff-lsp", marker = "extra == 'lint'", specifier = ">=0.0.55" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.32" },
     { name = "sqlmodel", specifier = ">=0.0.21,<0.1.0" },
     { name = "termynal", marker = "extra == 'docs'", specifier = ">=0.12.1" },
 ]
@@ -1086,6 +1088,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/50/ef/973e0bbf2be5c12e34dca92139ca100f51ba078e36c3c06fd1dc8480c209/SQLAlchemy-2.0.32-cp312-cp312-win32.whl", hash = "sha256:31983018b74908ebc6c996a16ad3690301a23befb643093fcfe85efd292e384d", size = 2057626 },
     { url = "https://files.pythonhosted.org/packages/db/5f/440c324aae82a2ce892ac0fe1d114b9dc9f04e934e8f0762574876a168b5/SQLAlchemy-2.0.32-cp312-cp312-win_amd64.whl", hash = "sha256:4363ed245a6231f2e2957cccdda3c776265a75851f4753c60f3004b90e69bfeb", size = 2083167 },
     { url = "https://files.pythonhosted.org/packages/99/1b/045185a9f6481d926a451aafaa0d07c98f19ac7abe730dff9630c9ead4fa/SQLAlchemy-2.0.32-py3-none-any.whl", hash = "sha256:e567a8793a692451f706b363ccf3c45e056b67d90ead58c3bc9471af5d212202", size = 1878765 },
+]
+
+[package.optional-dependencies]
+asyncio = [
+    { name = "greenlet" },
 ]
 
 [[package]]

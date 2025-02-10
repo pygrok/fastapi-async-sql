@@ -1,6 +1,6 @@
 [project]
 name = "fastapi-async-sql"
-version = "0.1.0-alpha.1"
+version = "0.2.0-alpha.2"
 description = "Common utilities for Async SQL FastAPI applications"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -10,6 +10,7 @@ dependencies = [
     "fastapi-pagination>=0.12.26,<0.13.0",
     "fastapi-filter[sqlalchemy]>=2.0.0,<3.0.0",
     "inflect>=7.3.1,<8.0.0",
+    "sqlalchemy[asyncio]>=2.0.32",
 ]
 
 [project.optional-dependencies]
