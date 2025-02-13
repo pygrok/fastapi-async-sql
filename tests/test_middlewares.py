@@ -154,8 +154,7 @@ async def test_async_sqlalchemy_middleware_db_session_commit(
             item_id=item.id,
         )
         request.state.db.add(hero)
-        await request.state.db.commit()
-        await request.state.db.refresh(hero)
+        await request.state.db.flush()
         return hero
 
     response = await client.post("/heroes")
@@ -166,3 +165,50 @@ async def test_async_sqlalchemy_middleware_db_session_commit(
     assert assert_hero.name == "Batman"
     assert assert_hero.secret_identity == "Bruce Wayne"  # nosec: B105
     assert assert_hero.age == 40
+
+
+async def test_async_sqlalchemy_middleware_multiple_db_operations(
+    app_with_db_middleware: FastAPI,
+    client: httpx.AsyncClient,
+    db: AsyncSession,
+    team: Team,
+    item: Item,
+):
+    """Test that the middleware correctly handles multiple database operations in a single request."""
+
+    @app_with_db_middleware.post(
+        "/heroes/create-and-update",
+        response_model=HeroReadSchema,
+        status_code=status.HTTP_201_CREATED,
+    )
+    async def create_and_update_hero(request: Request):
+        # First operation: Create hero
+        hero = Hero(
+            name="Superman",
+            secret_identity="Clark Kent",  # nosec: B106
+            age=35,
+            team_id=team.id,
+            item_id=item.id,
+        )
+        request.state.db.add(hero)
+        await request.state.db.flush()
+
+        # Second operation: Update the hero's name
+        hero.name = "Superman Updated"
+        request.state.db.add(hero)
+        await request.state.db.flush()
+
+        return hero
+
+    response = await client.post("/heroes/create-and-update")
+    assert response.status_code == status.HTTP_201_CREATED
+    hero_data = response.json()
+
+    # Verify the hero was created and updated correctly
+    assert_hero = await db.get(Hero, UUID(hero_data["id"]))
+    assert assert_hero is not None
+    assert assert_hero.name == "Superman Updated"  # Verify the update worked
+    assert assert_hero.secret_identity == "Clark Kent"  # nosec: B105
+    assert assert_hero.age == 35
+    assert assert_hero.team_id == team.id
+    assert assert_hero.item_id == item.id

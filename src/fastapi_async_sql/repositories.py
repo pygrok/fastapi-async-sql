@@ -122,13 +122,12 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         try:
             session.add(db_obj)
-            await session.commit()
+            # Don't commit here - let the middleware handle the transaction
+            await session.flush()  # Just flush to get generated values
         except exc.IntegrityError as err:
-            await session.rollback()
             raise CreateObjectError(
                 obj=self.model.__name__, **db_obj.model_dump()
             ) from err
-        await session.refresh(db_obj)
         return db_obj
 
     async def update(
@@ -146,14 +145,13 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         else:
             update_data = obj_new.model_dump(
                 exclude_unset=True,
-                exclude_defaults=True,
-            )  # This tells Pydantic to not include the values that were not sent
+            )
         for field in update_data:
             setattr(obj_current, field, update_data[field])
 
         session.add(obj_current)
-        await session.commit()
-        await session.refresh(obj_current)
+        # Don't commit here - let the middleware handle the transaction
+        await session.flush()
         return obj_current
 
     async def remove(
@@ -165,7 +163,8 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if obj is None:
             raise ObjectNotFoundError(obj=self.model.__name__, id=id)
         await session.delete(obj)
-        await session.commit()
+        # Don't commit here - let the middleware handle the transaction
+        await session.flush()
         return None
 
     # noinspection PyMethodMayBeStatic

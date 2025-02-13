@@ -1,6 +1,6 @@
 [project]
 name = "fastapi-async-sql"
-version = "0.2.0-alpha.2"
+version = "0.2.0-alpha.3"
 description = "Common utilities for Async SQL FastAPI applications"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -13,7 +13,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.32",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 lint = [
     "ruff>=0.6.2",
     "ruff-lsp>=0.0.55",
@@ -35,6 +35,9 @@ docs = [
     "mdx-include>=1.4.2",
     "mkdocstrings[python]>=0.25.2",
 ]
+
+[tool.uv]
+default-groups = ["lint", "test", "docs"]
 
 [build-system]
 requires = ["hatchling"]
