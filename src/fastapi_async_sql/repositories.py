@@ -179,7 +179,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self, query: T | Select[T], filter_by: Filter | None
     ) -> T | Select[T]:
         """Get the query with the filter applied."""
-        if filter_by:
+        if filter_by is not None:
             query = filter_by.filter(query)
             if getattr(filter_by, filter_by.Constants.ordering_field_name, None):
                 query = filter_by.sort(query)
