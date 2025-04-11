@@ -72,6 +72,32 @@ async def test_create_hero_duplicate(
         await hero_repository.create(obj_in=hero_data)
 
 
+async def test_create_hero_from_model_instance(
+    db: AsyncSession,
+    team: Team,
+    item: Item,
+    hero_repository: HeroRepository,
+):
+    """Test create hero from a model instance (not schema)."""
+    hero_instance = Hero(
+        name="Instance Hero",
+        age=25,
+        secret_identity="Instance Identity",  # nosec: B106
+        team_id=team.id,
+        item_id=item.id,
+    )
+
+    created_hero = await hero_repository.create(obj_in=hero_instance)
+
+    assert created_hero.id is not None
+    assert created_hero.name == "Instance Hero"
+    assert created_hero.age == 25
+    assert created_hero.secret_identity == "Instance Identity"  # nosec: B105
+    assert created_hero.team_id == team.id
+    assert created_hero.item_id == item.id
+    assert isinstance(created_hero.created_at, datetime)
+
+
 async def test_get_hero(
     db: AsyncSession,
     heroes: list[Hero],

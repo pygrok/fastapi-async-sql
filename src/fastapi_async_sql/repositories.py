@@ -118,7 +118,10 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> ModelType:
         """Create a new object."""
         session = self._get_db_session(db_session)
-        db_obj = self.model.model_validate(obj_in, update=extra_data)
+        if isinstance(obj_in, self.model):
+            db_obj = obj_in.model_copy(update=extra_data)
+        else:
+            db_obj = self.model.model_validate(obj_in, update=extra_data)
 
         try:
             session.add(db_obj)
