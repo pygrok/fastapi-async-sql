@@ -12,7 +12,21 @@ from fastapi_async_sql.exceptions import (
 )
 
 
-class AsyncSQLAlchemyMiddleware(BaseHTTPMiddleware):
+class AsyncSQLModelMiddleware(BaseHTTPMiddleware):
+    """Middleware to handle the database session.
+
+    /// info | Usage Documentation
+    [Middlewares](../concepts/middlewares.md#asyncsqlmodelmiddleware)
+    ///
+
+    Attributes:
+        app (ASGIApp): The ASGI app.
+        db_url (str | None): The database URL. Defaults to None.
+        custom_engine (AsyncEngine | None): The custom engine. Defaults to None.
+        session_options (dict | None): The session options. Defaults to None.
+        engine_options (dict | None): The engine options. Defaults to None.
+    """
+
     def __init__(
         self,
         app: ASGIApp,
@@ -33,15 +47,27 @@ class AsyncSQLAlchemyMiddleware(BaseHTTPMiddleware):
         else:
             self.engine = custom_engine
 
+        # Modify session defaults to keep session active
+        default_session_options = {
+            "expire_on_commit": False,  # Prevent expiring objects after commit
+            "autoflush": True,
+        }
+        if session_options:
+            default_session_options.update(session_options)
+
         self.async_session = async_sessionmaker(
             bind=self.engine,
             class_=AsyncSession,
-            **session_options or {},
+            **default_session_options,
         )
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
         """Method to dispatch the request."""
         async with self.async_session() as session:
-            request.state.db = session
-            response = await call_next(request)
-            return response
+            # Begin transaction
+            async with session.begin():
+                request.state.db = session
+                response = await call_next(request)
+                # Transaction will be committed automatically when exiting context
+                # Only if no exceptions occurred
+                return response

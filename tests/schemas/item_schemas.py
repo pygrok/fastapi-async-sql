@@ -7,13 +7,13 @@ from fastapi_async_sql.utils.partial import optional
 from ..models.item_model import ItemBase
 
 
-class IItemCreate(ItemBase): ...
+class ItemCreateSchema(ItemBase): ...
 
 
 @optional()
-class IItemUpdate(ItemBase): ...
+class ItemUpdateSchema(ItemBase): ...
 
 
-class IItemRead(ItemBase):
+class ItemReadSchema(ItemBase):
     id: UUID4
     created_by_id: UUID4

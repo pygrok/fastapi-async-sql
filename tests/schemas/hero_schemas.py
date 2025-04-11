@@ -9,30 +9,30 @@ from ..models.item_model import ItemBase
 from ..models.team_model import TeamBase
 
 
-class IHeroCreate(HeroBase):
+class HeroCreateSchema(HeroBase):
     pass
 
 
 @optional()
-class IHeroUpdate(HeroBase):
+class HeroUpdateSchema(HeroBase):
     team_id: UUID4 | None = None
     item_id: UUID4 | None = None
 
 
-class IHeroRead(HeroBase):
+class HeroReadSchema(HeroBase):
     id: UUID4
 
 
-class HeroTeamRead(TeamBase):
+class _HeroTeamReadSchema(TeamBase):
     id: UUID4
 
 
-class ItemTeamRead(ItemBase):
+class _ItemTeamReadSchema(ItemBase):
     id: UUID4
     created_by_id: UUID4
 
 
-class IHeroReadWithTeam(IHeroRead):
+class HeroReadWithTeamSchema(HeroReadSchema):
     id: UUID4
-    team: HeroTeamRead = None
-    item: ItemTeamRead = None
+    team: _HeroTeamReadSchema = None
+    item: _ItemTeamReadSchema = None

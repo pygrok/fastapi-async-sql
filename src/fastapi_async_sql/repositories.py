@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from typing import Any, Generic, TypeVar
 
-from pydantic import UUID4, BaseModel
+from pydantic import BaseModel
 from sqlalchemy import exc
 from sqlmodel import SQLModel, func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -18,11 +18,22 @@ CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 SchemaType = TypeVar("SchemaType", bound=BaseModel)
 T = TypeVar("T", bound=SQLModel)
-PK = UUID4
+PK = Any
 
 
 class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    def __init__(self, model: type[ModelType], db: AsyncSession | None = None):
+    """Base Repository with default methods to Create, Read, Update, Delete (CRUD).
+
+    /// info | Usage Documentation
+    [Repositories](../concepts/repositories.md#baserepository)
+    ///
+
+    Attributes:
+        model (type[ModelType]): The model to be used in the Repository.
+        db (AsyncSession | None): The database session to be used. Defaults to None.
+    """
+
+    def __init__(self, model: type[ModelType], db: AsyncSession | None = None) -> None:
         """Repository with default methods to Create, Read, Update, Delete (CRUD).
 
         Args:
@@ -35,9 +46,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
         self.db = db
 
-    async def get(
-        self, *, id: PK, db_session: AsyncSession | None = None
-    ) -> ModelType | None:
+    async def get(self, *, id: PK, db_session: AsyncSession | None = None) -> ModelType:
         """Get a single object by ID."""
         session = self._get_db_session(db_session)
         response = await session.get(self.model, id)
@@ -109,17 +118,19 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> ModelType:
         """Create a new object."""
         session = self._get_db_session(db_session)
-        db_obj = self.model.model_validate(obj_in, update=extra_data)
+        if isinstance(obj_in, self.model):
+            db_obj = obj_in.model_copy(update=extra_data)
+        else:
+            db_obj = self.model.model_validate(obj_in, update=extra_data)
 
         try:
             session.add(db_obj)
-            await session.commit()
+            # Don't commit here - let the middleware handle the transaction
+            await session.flush()  # Just flush to get generated values
         except exc.IntegrityError as err:
-            await session.rollback()
             raise CreateObjectError(
                 obj=self.model.__name__, **db_obj.model_dump()
             ) from err
-        await session.refresh(db_obj)
         return db_obj
 
     async def update(
@@ -137,14 +148,13 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         else:
             update_data = obj_new.model_dump(
                 exclude_unset=True,
-                exclude_defaults=True,
-            )  # This tells Pydantic to not include the values that were not sent
+            )
         for field in update_data:
             setattr(obj_current, field, update_data[field])
 
         session.add(obj_current)
-        await session.commit()
-        await session.refresh(obj_current)
+        # Don't commit here - let the middleware handle the transaction
+        await session.flush()
         return obj_current
 
     async def remove(
@@ -156,7 +166,8 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if obj is None:
             raise ObjectNotFoundError(obj=self.model.__name__, id=id)
         await session.delete(obj)
-        await session.commit()
+        # Don't commit here - let the middleware handle the transaction
+        await session.flush()
         return None
 
     # noinspection PyMethodMayBeStatic
@@ -171,7 +182,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self, query: T | Select[T], filter_by: Filter | None
     ) -> T | Select[T]:
         """Get the query with the filter applied."""
-        if filter_by:
+        if filter_by is not None:
             query = filter_by.filter(query)
             if getattr(filter_by, filter_by.Constants.ordering_field_name, None):
                 query = filter_by.sort(query)

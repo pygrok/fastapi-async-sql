@@ -1,12 +1,12 @@
 .PHONY: migrations
 
 lint:
-	uv run pre-commit install
-	uv run pre-commit run -a -v
+	uvx pre-commit install
+	uvx pre-commit run -a -v
 
 update:
 	uv lock --upgrade
-	uv run pre-commit autoupdate -j 10
+	uvx pre-commit autoupdate -j 10
 
 sync:
 	uv sync --all-extras

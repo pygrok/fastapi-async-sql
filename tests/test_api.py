@@ -17,7 +17,7 @@ from fastapi_async_sql.utils.string import to_camel
 from tests.dependencies import AnnotatedRepositoryHero
 from tests.models.hero_model import Hero
 from tests.models.team_model import Team
-from tests.schemas.hero_schema import IHeroRead, IHeroReadWithTeam
+from tests.schemas.hero_schemas import HeroReadSchema, HeroReadWithTeamSchema
 
 
 @pytest.mark.parametrize(
@@ -44,7 +44,7 @@ async def test_get_paginated_response(
     @app.get("/heroes")
     async def get_heroes(
         repository: AnnotatedRepositoryHero, params: Params = Depends()
-    ) -> Page[IHeroRead]:
+    ) -> Page[HeroReadSchema]:
         return await repository.get_multi_paginated(page_params=params)
 
     response = await client.get("/heroes", params=query_params)
@@ -303,7 +303,7 @@ async def test_api_filtering(
         repository: AnnotatedRepositoryHero,
         params: Params = Depends(),
         filter_by: HeroFilter = FilterDepends(HeroFilter),
-    ) -> list[IHeroRead]:
+    ) -> list[HeroReadSchema]:
         query = select(Hero).outerjoin(Team)
         return await repository.get_multi(
             query=query, page_params=params, filter_by=filter_by
@@ -314,7 +314,7 @@ async def test_api_filtering(
         repository: AnnotatedRepositoryHero,
         params: Params = Depends(),
         filter_by: HeroFilterByAlias = FilterDepends(HeroFilterByAlias, by_alias=True),
-    ) -> list[IHeroRead]:
+    ) -> list[HeroReadSchema]:
         return await repository.get_multi(page_params=params, filter_by=filter_by)
 
     response = await client.get(f"{endpoint}?{urlencode(filter_clause)}")
@@ -332,7 +332,7 @@ async def test_get_heroes_with_relationships(
     @app.get("/heroes")
     async def get_heroes(
         repository: AnnotatedRepositoryHero,
-    ) -> list[IHeroReadWithTeam]:
+    ) -> list[HeroReadWithTeamSchema]:
         query = (
             select(Hero)
             .options(selectinload(Hero.team))
@@ -375,7 +375,7 @@ async def test_get_hero_with_relationships_with_lazy_loading(
     @app.get("/heroes/{hero_id}")
     async def get_heroes(
         hero_id: UUID4, repository: AnnotatedRepositoryHero
-    ) -> IHeroReadWithTeam:
+    ) -> HeroReadWithTeamSchema:
         response = await repository.get(id=hero_id)
         response.item = await response.awaitable_attrs.item
         response.team = await response.awaitable_attrs.team
@@ -404,3 +404,64 @@ async def test_get_hero_with_relationships_with_lazy_loading(
             "createdById": str(hero.item.created_by_id),
         },
     }
+
+
+async def test_api_filtering_with_intercepted_filter(
+    app: FastAPI,
+    client: httpx.AsyncClient,
+    marvel_heroes,
+):
+    """Test API filtering with intercepted filter to add additional constraints."""
+
+    class HeroFilter(Filter):
+        name: str | None = None
+        age__gt: int | None = None
+        order_by: list[str] | None = Field(default_factory=list)
+
+        class Constants(Filter.Constants):
+            model = Hero
+
+        def filter(self, query):
+            # First apply the original filters
+            query = super().filter(query)
+            # Then add our additional filter
+            return query.where(Hero.name != "Vision")
+
+    @app.get("/heroes/filtered")
+    async def get_filtered_heroes(
+        repository: AnnotatedRepositoryHero,
+        filter_by: HeroFilter = FilterDepends(HeroFilter),
+    ) -> list[HeroReadSchema]:
+        return await repository.get_multi(filter_by=filter_by)
+
+    # Test with no filters - should return all heroes except Vision
+    response = await client.get("/heroes/filtered")
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    response_names = [hero["name"] for hero in response_data]
+    assert "Vision" not in response_names
+    assert len(response_names) == len(marvel_heroes) - 1
+
+    # Test with age filter - should still exclude Vision
+    response = await client.get("/heroes/filtered?age__gt=40")
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    response_names = [hero["name"] for hero in response_data]
+    assert "Vision" not in response_names
+    assert all(hero["age"] > 40 for hero in response_data)
+
+    # Test with name filter - should still exclude Vision
+    response = await client.get("/heroes/filtered?name=Thor")
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    response_names = [hero["name"] for hero in response_data]
+    assert "Vision" not in response_names
+    assert all(hero["name"] == "Thor" for hero in response_data)
+
+    # Test with ordering - should return ordered list without Vision
+    response = await client.get("/heroes/filtered?order_by=name")
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    response_names = [hero["name"] for hero in response_data]
+    assert "Vision" not in response_names
+    assert response_names == sorted(response_names)

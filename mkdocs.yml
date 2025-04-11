@@ -5,25 +5,74 @@ repo_name: pygrok/fastapi-async-sql
 theme:
   name: material
   palette:
-    primary: teal
+    primary: 'pink'
   icon:
     repo: fontawesome/brands/github
+    admonition:
+      api: fontawesome/solid/note-sticky
   features:
     - content.code.copy
+    - navigation.tabs
 plugins:
+  - search
+  - mkdocstrings
   - termynal:
       title: bash
       buttons: macos
       prompt_literal_start:
         - "$"
-  - git-revision-date-localized:
-      enable_creation_date: true
-      type: date
 markdown_extensions:
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
+  toc:
+    permalink: True
+  admonition:
+  # Python Markdown Extensions
+  pymdownx.betterem:
+    smart_enable: all
+  pymdownx.caret:
+  pymdownx.highlight:
+    line_spans: __span
+  pymdownx.inlinehilite:
+  pymdownx.keys:
+  pymdownx.mark:
+  pymdownx.details:
+  pymdownx.superfences:
+    custom_fences:
+      - name: mermaid
+        class: mermaid
+        format: "!!python/name:pymdownx.superfences.fence_code_format"
+  pymdownx.tilde:
+
+  # pymdownx blocks
+  pymdownx.blocks.admonition:
+    types:
+      - note
+      - attention
+      - caution
+      - danger
+      - error
+      - tip
+      - hint
+      - warning
+      # Custom types
+      - info
+  pymdownx.blocks.details:
+  pymdownx.blocks.tab:
+    alternate_style: True
+  mdx_include:
+    base_path: .
+extra_css:
+  - 'extra/style.css'
+nav:
+  - FastAPI Async SQL: index.md
+  - Concepts:
+      - Middlewares: concepts/middlewares.md
+      - Models: concepts/models.md
+      - Repositories: concepts/repositories.md
+      - Pagination: concepts/pagination.md
+      - Filtering: concepts/filtering.md
+  - API Documentation:
+      - AsyncSQLModelMiddleware: api_doc/async_sql_model_middleware.md
+      - BaseSQLModel: api_doc/base_sql_model.md
+      - BaseTimestampModel: api_doc/base_timestamp_model.md
+      - BaseUUIDModel: api_doc/base_uuid_model.md
+      - BaseRepository: api_doc/base_repository.md

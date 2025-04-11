@@ -12,7 +12,7 @@ uv pip install fastapi-async-sql
 </div>
 
 ## Features
-- AsyncSQLAlchemyMiddleware: A middleware to handle database connections with AsyncSQLAlchemy
+- AsyncSQLModelMiddleware: A middleware to handle database connections with AsyncSQLAlchemy
 - [SQLModel](https://sqlmodel.tiangolo.com/): A library to handle database models with Pydantic and SQLAlchemy
 - Base models for `SQLModel`:
   - `BaseSQLModel`: A opinionated base model for SQLAlchemy models
